@@ -322,7 +322,7 @@ const App: React.FC = () => {
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 relative">
                 <img 
-                  src="/Gemini_Generated_Image_hlffi9hlffi9hlff.png" 
+                  src="Gemini_Generated_Image_jkgj43jkgj43jkgj (1).png" 
                   alt="El7ag Logo" 
                   className="w-full h-full rounded-2xl shadow-xl shadow-red-600/20 object-cover" 
                   onError={(e) => {
