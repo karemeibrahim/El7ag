@@ -27,8 +27,8 @@ import {
   StickyNote,
   HelpCircle
 } from 'lucide-react';
-import { analyzeContent, chatWithContext, generateSlideDeck } from './services/geminiService.ts';
-import { processFiles } from './utils/fileHelpers';
+import { analyzeContent, chatWithContext, generateSlideDeck } from 'geminiService.ts';
+import { processFiles } from 'fileHelpers';
 import { AnalysisResponse, ProcessingState, ChatMessage, Language, Slide, QuestionAnalysis } from './types';
 
 const BACKGROUND_IMAGE_URL = "unnamed.jpg"; 
