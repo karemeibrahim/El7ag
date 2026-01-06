@@ -27,14 +27,11 @@ import {
   StickyNote,
   HelpCircle
 } from 'lucide-react';
-import { analyzeContent, chatWithContext, generateSlideDeck } from './services/geminiService.ts';
-import { processFiles } from "./utils/fileHelpers";
+import { analyzeContent, chatWithContext, generateSlideDeck } from './services/geminiService';
+import { processFiles } from './utils/fileHelpers';
 import { AnalysisResponse, ProcessingState, ChatMessage, Language, Slide, QuestionAnalysis } from './types';
 
-// ضيف السطر ده
-import bgImage from './unnamed.jpg';
-// شيل علامات التنصيص واستخدم الاسم اللي فوق
-const BACKGROUND_IMAGE_URL = bgImage;
+const BACKGROUND_IMAGE_URL = "unnamed.jpg"; 
 
 /**
  * Robust Math rendering component that avoids KaTeX auto-render's strict quirks-mode check
@@ -322,7 +319,7 @@ const App: React.FC = () => {
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 relative">
                 <img 
-                  src="Gemini_Generated_Image_jkgj43jkgj43jkgj (1).png" 
+                  src="/Gemini_Generated_Image_hlffi9hlffi9hlff.png" 
                   alt="El7ag Logo" 
                   className="w-full h-full rounded-2xl shadow-xl shadow-red-600/20 object-cover" 
                   onError={(e) => {
