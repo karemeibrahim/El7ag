@@ -2,9 +2,10 @@ import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { AnalysisResponse, Slide } from "../types";
 import { ProcessedFilePart } from "../utils/fileHelpers";
 
-// ✅ 1. استدعاء المفتاح بالطريقة الصحيحة
+// 1. تعريف المفتاح بالطريقة الصحيحة لـ Vite
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
 
+// ... باقي الكود ...
 const localizedContentSchema: Schema = {
   type: Type.OBJECT,
   properties: {
@@ -83,21 +84,15 @@ export const analyzeContent = async (
   });
 
   const prompt = `
-    You are "El7ag" (الحاج), an expert academic tutor designed to help students understand complex Math and Physics problems.
-    Your task is to analyze the provided content and output a JSON response based on the schema.
-    **CRITICAL MATH FORMATTING RULES:**
+    You are "El7ag" (الحاج), an expert academic tutor.
+    Your task is to analyze the provided content and output a JSON response.
     Format **any mathematical expression** into readable mathematical symbols using Unicode/Math symbols.
-    1. Square roots → √  
-    2. Powers → superscript (², ³, or ^n)  
-    3. Fractions → ÷ or use fraction style (a/b)  
-    4. Multiplication → ×  
-    **Language & Persona:** Respond in clear, professional **Arabic** mixed with a friendly Egyptian tutor persona.
     Additional user input: ${textInput}
   `;
 
   parts.push({ text: prompt });
 
-  // ✅ 2. استخدام موديل موجود فعلياً (Flash سريع ورخيص)
+  // 2. أهم تعديل: استخدام gemini-1.5-flash بدلاً من gemini-3
   const response = await ai.models.generateContent({
     model: 'gemini-1.5-flash', 
     contents: { parts },
@@ -119,9 +114,9 @@ export const analyzeContent = async (
 };
 
 export const generateSlideDeck = async (analysis: AnalysisResponse, language: 'ar' | 'en'): Promise<Slide[]> => {
-  const prompt = `Convert this analysis into a presentation (Slides). Use Unicode Math symbols (√, ², ×, etc.) for all math. Do NOT use LaTeX.`;
+  const prompt = `Convert this analysis into a presentation (Slides). Use Unicode Math symbols.`;
   
-  // ✅ 3. استخدام موديل موجود فعلياً
+  // 3. تعديل اسم الموديل هنا كمان
   const response = await ai.models.generateContent({
     model: 'gemini-1.5-flash',
     contents: { parts: [{ text: prompt + JSON.stringify(analysis) }] },
@@ -135,12 +130,10 @@ export const generateSlideDeck = async (analysis: AnalysisResponse, language: 'a
 
 export const chatWithContext = async (history: any[], newMessage: string) => {
   const chat = ai.chats.create({
-    model: 'gemini-1.5-pro', // ✅ 4. استخدام Pro للشات لأنه أذكى
+    model: 'gemini-1.5-pro', // 4. استخدام Pro للشات
     history: history,
     config: {
-       systemInstruction: `You are "El7ag" (الحاج), an expert academic tutor.
-       Format **any mathematical expression** into readable mathematical symbols using Unicode/Math symbols.
-       Persona: Speak in professional Arabic with a friendly Egyptian spirit.`
+       systemInstruction: `You are "El7ag". Format math using Unicode symbols.`
     }
   });
   const result = await chat.sendMessage({ message: newMessage });
