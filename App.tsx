@@ -33,15 +33,6 @@ import { AnalysisResponse, ProcessingState, ChatMessage, Language, Slide, Questi
 
 const BACKGROUND_IMAGE_URL = "unnamed.jpg"; // تعريف المتغير
 
-function App() {
-  return (
-    // هنا بنستخدم المتغير عشان نغير الخلفية
-    <div style={{ backgroundImage: `url(${BACKGROUND_IMAGE_URL})` }}>
-     
-    </div>
-  );
-}
-
 /**
  * Robust Math rendering component that avoids KaTeX auto-render's strict quirks-mode check
  * by manually parsing and calling katex.render.
