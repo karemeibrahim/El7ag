@@ -1,0 +1,8 @@
+
+{
+  "name": "El7ag - الحاج الـ Textbook",
+  "description": "تطبيق لتحليل الأسئلة والملفات وتحويلها لنصوص أكاديمية احترافية بأسلوب الكتب الجامعية وباستخدام Gemini 2.0.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
