@@ -2,11 +2,9 @@ import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { AnalysisResponse, Slide } from "../types";
 import { ProcessedFilePart } from "../utils/fileHelpers";
 
-// 1. استخدام import.meta.env المتوافق مع Vite
-// تأكد أنك سميت المتغير في Netlify/Vercel بـ VITE_API_KEY
+// ✅ 1. استدعاء المفتاح بالطريقة الصحيحة
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
 
-// ... (باقي تعريفات الـ Schema اتركها كما هي) ...
 const localizedContentSchema: Schema = {
   type: Type.OBJECT,
   properties: {
@@ -86,43 +84,26 @@ export const analyzeContent = async (
 
   const prompt = `
     You are "El7ag" (الحاج), an expert academic tutor designed to help students understand complex Math and Physics problems.
-    
     Your task is to analyze the provided content and output a JSON response based on the schema.
-    
     **CRITICAL MATH FORMATTING RULES:**
-    You are a math formatting AI. Format **any mathematical expression** into readable mathematical symbols using Unicode/Math symbols for direct display to users. Follow these rules:
-
+    Format **any mathematical expression** into readable mathematical symbols using Unicode/Math symbols.
     1. Square roots → √  
     2. Powers → superscript (², ³, or ^n)  
     3. Fractions → ÷ or use fraction style (a/b)  
     4. Multiplication → ×  
-    5. Parentheses → () for grouping  
-    6. Trigonometric functions → sin, cos, tan (display normally)  
-    7. Logarithms → log, ln (display normally)  
-    8. Greek letters → α, β, θ, π, etc.  
-    9. Matrices → use brackets [ ] or ⎡ ⎤  
-    10. Exponents, roots, and fractions should always use proper symbols, not plain text.  
-    11. Keep the equation readable in one line if possible, or use line breaks for large expressions.
-    
-    **Examples:**
-    * Input: "square root of x plus x squared divided by 3" -> Output: "(√x + x²) ÷ 3"
-    * Input: "sin(theta) squared plus cos(theta) squared equals 1" -> Output: "sin²(θ) + cos²(θ) = 1"
-    
-    **Language & Persona:** * Respond in clear, professional **Arabic** mixed with a friendly Egyptian tutor persona ("Ya Habeeb El7ag").
-    
+    **Language & Persona:** Respond in clear, professional **Arabic** mixed with a friendly Egyptian tutor persona.
     Additional user input: ${textInput}
   `;
 
   parts.push({ text: prompt });
 
-  // 2. تصحيح اسم الموديل هنا
+  // ✅ 2. استخدام موديل موجود فعلياً (Flash سريع ورخيص)
   const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash', // تم التعديل من gemini-3-pro-preview
+    model: 'gemini-1.5-flash', 
     contents: { parts },
     config: {
       responseMimeType: "application/json",
       responseSchema: analysisSchema,
-      // thinkingConfig: { thinkingBudget: 32768 }, // تم التعليق لأن gemini-1.5 قد لا يدعم thinkingConfig بنفس الطريقة حالياً
     },
   });
 
@@ -139,9 +120,10 @@ export const analyzeContent = async (
 
 export const generateSlideDeck = async (analysis: AnalysisResponse, language: 'ar' | 'en'): Promise<Slide[]> => {
   const prompt = `Convert this analysis into a presentation (Slides). Use Unicode Math symbols (√, ², ×, etc.) for all math. Do NOT use LaTeX.`;
-  // 3. تصحيح اسم الموديل هنا
+  
+  // ✅ 3. استخدام موديل موجود فعلياً
   const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash', // تم التعديل من gemini-3-flash-preview
+    model: 'gemini-1.5-flash',
     contents: { parts: [{ text: prompt + JSON.stringify(analysis) }] },
     config: {
       responseMimeType: "application/json",
@@ -153,21 +135,12 @@ export const generateSlideDeck = async (analysis: AnalysisResponse, language: 'a
 
 export const chatWithContext = async (history: any[], newMessage: string) => {
   const chat = ai.chats.create({
-    model: 'gemini-1.5-pro', // تم التعديل من gemini-3-pro-preview (نستخدم pro للشات عشان يكون أذكى)
+    model: 'gemini-1.5-pro', // ✅ 4. استخدام Pro للشات لأنه أذكى
     history: history,
     config: {
        systemInstruction: `You are "El7ag" (الحاج), an expert academic tutor.
-       
-       **CRITICAL MATH FORMATTING RULES:**
-       Format **any mathematical expression** into readable mathematical symbols using Unicode/Math symbols for direct display.
-       1. Square roots → √
-       2. Powers → superscript (², ³, or ^n)
-       3. Fractions → ÷ or (a/b)
-       4. Multiplication → ×
-       5. NO LaTeX syntax (no $, no \\frac, etc.).
-       
-       **Persona:** Speak in professional Arabic with a friendly Egyptian spirit.
-       `
+       Format **any mathematical expression** into readable mathematical symbols using Unicode/Math symbols.
+       Persona: Speak in professional Arabic with a friendly Egyptian spirit.`
     }
   });
   const result = await chat.sendMessage({ message: newMessage });
