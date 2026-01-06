@@ -31,7 +31,16 @@ import { analyzeContent, chatWithContext, generateSlideDeck } from './services/g
 import { processFiles } from './utils/fileHelpers';
 import { AnalysisResponse, ProcessingState, ChatMessage, Language, Slide, QuestionAnalysis } from './types';
 
-const BACKGROUND_IMAGE_URL = "unnamed.jpg"; 
+const BACKGROUND_IMAGE_URL = "unnamed.jpg"; // تعريف المتغير
+
+function App() {
+  return (
+    // هنا بنستخدم المتغير عشان نغير الخلفية
+    <div style={{ backgroundImage: `url(${BACKGROUND_IMAGE_URL})` }}>
+     
+    </div>
+  );
+}
 
 /**
  * Robust Math rendering component that avoids KaTeX auto-render's strict quirks-mode check
@@ -319,7 +328,7 @@ const App: React.FC = () => {
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 relative">
                 <img 
-                  src="/Gemini_Generated_Image_hlffi9hlffi9hlff.png" 
+                  src="Gemini_Generated_Image_jkgj43jkgj43jkgj%20(1).png" 
                   alt="El7ag Logo" 
                   className="w-full h-full rounded-2xl shadow-xl shadow-red-600/20 object-cover" 
                   onError={(e) => {
