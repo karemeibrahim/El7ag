@@ -1,12 +1,12 @@
-
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { AnalysisResponse, Slide } from "../types";
 import { ProcessedFilePart } from "../utils/fileHelpers";
 
-// Initialize Gemini Client
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// 1. استخدام import.meta.env المتوافق مع Vite
+// تأكد أنك سميت المتغير في Netlify/Vercel بـ VITE_API_KEY
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
 
-// Reusable parts for the schema
+// ... (باقي تعريفات الـ Schema اتركها كما هي) ...
 const localizedContentSchema: Schema = {
   type: Type.OBJECT,
   properties: {
@@ -108,21 +108,21 @@ export const analyzeContent = async (
     * Input: "square root of x plus x squared divided by 3" -> Output: "(√x + x²) ÷ 3"
     * Input: "sin(theta) squared plus cos(theta) squared equals 1" -> Output: "sin²(θ) + cos²(θ) = 1"
     
-    **Language & Persona:** 
-    * Respond in clear, professional **Arabic** mixed with a friendly Egyptian tutor persona ("Ya Habeeb El7ag").
+    **Language & Persona:** * Respond in clear, professional **Arabic** mixed with a friendly Egyptian tutor persona ("Ya Habeeb El7ag").
     
     Additional user input: ${textInput}
   `;
 
   parts.push({ text: prompt });
 
+  // 2. تصحيح اسم الموديل هنا
   const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-preview',
+    model: 'gemini-1.5-flash', // تم التعديل من gemini-3-pro-preview
     contents: { parts },
     config: {
       responseMimeType: "application/json",
       responseSchema: analysisSchema,
-      thinkingConfig: { thinkingBudget: 32768 },
+      // thinkingConfig: { thinkingBudget: 32768 }, // تم التعليق لأن gemini-1.5 قد لا يدعم thinkingConfig بنفس الطريقة حالياً
     },
   });
 
@@ -139,8 +139,9 @@ export const analyzeContent = async (
 
 export const generateSlideDeck = async (analysis: AnalysisResponse, language: 'ar' | 'en'): Promise<Slide[]> => {
   const prompt = `Convert this analysis into a presentation (Slides). Use Unicode Math symbols (√, ², ×, etc.) for all math. Do NOT use LaTeX.`;
+  // 3. تصحيح اسم الموديل هنا
   const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-1.5-flash', // تم التعديل من gemini-3-flash-preview
     contents: { parts: [{ text: prompt + JSON.stringify(analysis) }] },
     config: {
       responseMimeType: "application/json",
@@ -152,7 +153,7 @@ export const generateSlideDeck = async (analysis: AnalysisResponse, language: 'a
 
 export const chatWithContext = async (history: any[], newMessage: string) => {
   const chat = ai.chats.create({
-    model: 'gemini-3-pro-preview',
+    model: 'gemini-1.5-pro', // تم التعديل من gemini-3-pro-preview (نستخدم pro للشات عشان يكون أذكى)
     history: history,
     config: {
        systemInstruction: `You are "El7ag" (الحاج), an expert academic tutor.
