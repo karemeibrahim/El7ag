@@ -27,7 +27,7 @@ import {
   StickyNote,
   HelpCircle
 } from 'lucide-react';
-import { analyzeContent, chatWithContext, generateSlideDeck } from './services/geminiService.ts';
+import { analyzeContent, chatWithContext, generateSlideDeck } from './services/geminiService';
 import { processFiles } from './utils/fileHelpers';
 import { AnalysisResponse, ProcessingState, ChatMessage, Language, Slide, QuestionAnalysis } from './types';
 
