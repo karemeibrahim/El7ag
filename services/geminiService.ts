@@ -4,7 +4,9 @@ import { ProcessedFilePart } from "../utils/fileHelpers";
 
 // 1. استخدام import.meta.env المتوافق مع Vite
 // تأكد أنك سميت المتغير في Netlify/Vercel بـ VITE_API_KEY
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
+const ai = new GoogleGenAI({
+  apiKey: process.env.GOOGLE_API_KEY
+});
 
 // ... (باقي تعريفات الـ Schema اتركها كما هي) ...
 const localizedContentSchema: Schema = {
