@@ -33,6 +33,8 @@ import { AnalysisResponse, ProcessingState, ChatMessage, Language, Slide, Questi
 
 // ضيف السطر ده
 import bgImage from './unnamed.jpg';
+// شيل علامات التنصيص واستخدم الاسم اللي فوق
+const BACKGROUND_IMAGE_URL = bgImage;
 
 /**
  * Robust Math rendering component that avoids KaTeX auto-render's strict quirks-mode check
