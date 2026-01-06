@@ -31,7 +31,8 @@ import { analyzeContent, chatWithContext, generateSlideDeck } from './services/g
 import { processFiles } from "./utils/fileHelpers";
 import { AnalysisResponse, ProcessingState, ChatMessage, Language, Slide, QuestionAnalysis } from './types';
 
-const BACKGROUND_IMAGE_URL = "unnamed.jpg"; 
+// ضيف السطر ده
+import bgImage from './unnamed.jpg';
 
 /**
  * Robust Math rendering component that avoids KaTeX auto-render's strict quirks-mode check
