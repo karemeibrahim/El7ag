@@ -1,33 +1,64 @@
-import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { AnalysisResponse, Slide } from "../types";
 import { ProcessedFilePart } from "../utils/fileHelpers";
 
+const API_KEY = import.meta.env.VITE_API_KEY;
+const BASE_URL = "https://generativelanguage.googleapis.com/v1";
 
+interface GeminiRequestBody {
+  contents: Array<{
+    role?: string;
+    parts: Array<{ text?: string; inlineData?: any }>;
+  }>;
+  generationConfig?: {
+    responseMimeType?: string;
+    responseSchema?: any;
+  };
+  systemInstruction?: {
+    parts: Array<{ text: string }>;
+  };
+}
 
-// 1. استخدام import.meta.env المتوافق مع Vite
-// تأكد أنك سميت المتغير في Netlify/Vercel بـ VITE_API_KEY
-const ai = new GoogleGenAI({
-  apiKey: import.meta.env.VITE_GEMINI_API_KEY
-});
+async function callGemini(model: string, body: GeminiRequestBody): Promise<string> {
+  const url = `${BASE_URL}/models/${model}:generateContent?key=${API_KEY}`;
+  
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
 
-// ... (باقي تعريفات الـ Schema اتركها كما هي) ...
-const localizedContentSchema: Schema = {
-  type: Type.OBJECT,
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Gemini API Error (${response.status}): ${error}`);
+  }
+
+  const data = await response.json();
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  
+  if (!text) {
+    throw new Error("No text content in response");
+  }
+  
+  return text;
+}
+
+const localizedContentSchema = {
+  type: "object",
   properties: {
-    questionSummary: { type: Type.STRING, description: "عنوان احترافي للسؤال (Bold)." },
-    keyIndicator: { type: Type.STRING, description: "المفتاح الرياضي أو المنطقي للحل." },
+    questionSummary: { type: "string", description: "عنوان احترافي للسؤال (Bold)." },
+    keyIndicator: { type: "string", description: "المفتاح الرياضي أو المنطقي للحل." },
     solutionSteps: { 
-      type: Type.ARRAY, 
-      items: { type: Type.STRING },
+      type: "array", 
+      items: { type: "string" },
       description: "خطوات حل مفصلة. استخدم رموز رياضية واضحة (Unicode) مثل √ و ² و × بدلاً من LaTeX."
     },
-    tips: { type: Type.STRING, description: "نصيحة من الحاج للطالب." },
+    tips: { type: "string", description: "نصيحة من الحاج للطالب." },
     practiceQuestion: {
-      type: Type.OBJECT,
+      type: "object",
       properties: {
-        question: { type: Type.STRING },
-        answer: { type: Type.STRING },
-        explanation: { type: Type.STRING }
+        question: { type: "string" },
+        answer: { type: "string" },
+        explanation: { type: "string" }
       },
       required: ["question", "answer", "explanation"]
     }
@@ -35,19 +66,19 @@ const localizedContentSchema: Schema = {
   required: ["questionSummary", "keyIndicator", "solutionSteps", "tips", "practiceQuestion"]
 };
 
-const analysisSchema: Schema = {
-  type: Type.OBJECT,
+const analysisSchema = {
+  type: "object",
   properties: {
-    overallSummaryAr: { type: Type.STRING, description: "ملخص عام للمحتوى بأسلوب أكاديمي راقٍ بالعامية المصرية." },
-    overallSummaryEn: { type: Type.STRING, description: "Professional English summary." },
+    overallSummaryAr: { type: "string", description: "ملخص عام للمحتوى بأسلوب أكاديمي راقٍ بالعامية المصرية." },
+    overallSummaryEn: { type: "string", description: "Professional English summary." },
     questions: {
-      type: Type.ARRAY,
+      type: "array",
       items: {
-        type: Type.OBJECT,
+        type: "object",
         properties: {
-          questionText: { type: Type.STRING, description: "نص السؤال الأصلي باستخدام رموز رياضية واضحة (Unicode)." },
-          category: { type: Type.STRING },
-          difficulty: { type: Type.STRING, enum: ["Easy", "Medium", "Hard", "Expert"] },
+          questionText: { type: "string", description: "نص السؤال الأصلي باستخدام رموز رياضية واضحة (Unicode)." },
+          category: { type: "string" },
+          difficulty: { type: "string", enum: ["Easy", "Medium", "Hard", "Expert"] },
           ar: localizedContentSchema,
           en: localizedContentSchema
         },
@@ -58,17 +89,17 @@ const analysisSchema: Schema = {
   required: ["questions", "overallSummaryAr", "overallSummaryEn"]
 };
 
-const slideDeckSchema: Schema = {
-  type: Type.OBJECT,
+const slideDeckSchema = {
+  type: "object",
   properties: {
     slides: {
-      type: Type.ARRAY,
+      type: "array",
       items: {
-        type: Type.OBJECT,
+        type: "object",
         properties: {
-          title: { type: Type.STRING },
-          bulletPoints: { type: Type.ARRAY, items: { type: Type.STRING } },
-          speakerNotes: { type: Type.STRING }
+          title: { type: "string" },
+          bulletPoints: { type: "array", items: { type: "string" } },
+          speakerNotes: { type: "string" }
         },
         required: ["title", "bulletPoints", "speakerNotes"]
       }
@@ -82,7 +113,8 @@ export const analyzeContent = async (
   fileParts: ProcessedFilePart[] = []
 ): Promise<AnalysisResponse> => {
   
-  const parts: any[] = [];
+  const parts: Array<{ text?: string; inlineData?: any }> = [];
+  
   fileParts.forEach(part => {
     if (part.inlineData) parts.push({ inlineData: part.inlineData });
     else if (part.text) parts.push({ text: part.text });
@@ -119,53 +151,39 @@ export const analyzeContent = async (
 
   parts.push({ text: prompt });
 
-  // 2. تصحيح اسم الموديل هنا
-  const response = await ai.models.generateContent({
-    model: model: 'gemini-1.5-flash-latest',
-    contents: [ // ✅ تعديل مهم: لازم تكون مصفوفة
-      {
-        role: 'user',
-        parts: parts
-      }
-    ],
-    config: {
+  const responseText = await callGemini("gemini-1.5-flash-latest", {
+    contents: [{ parts }],
+    generationConfig: {
       responseMimeType: "application/json",
-     
+      responseSchema: analysisSchema,
     },
   });
-const responseText = response.text();
-  if (response.text) {
-    const data = JSON.parse(response.text);
-    data.questions = data.questions.map((q: any, index: number) => ({
-      ...q,
-      id: `q-${Date.now()}-${index}`
-    }));
-    return data as AnalysisResponse;
-  }
-  throw new Error("No response generated");
+
+  const data = JSON.parse(responseText);
+  data.questions = data.questions.map((q: any, index: number) => ({
+    ...q,
+    id: `q-${Date.now()}-${index}`
+  }));
+  
+  return data as AnalysisResponse;
 };
 
 export const generateSlideDeck = async (analysis: AnalysisResponse, language: 'ar' | 'en'): Promise<Slide[]> => {
   const prompt = `Convert this analysis into a presentation (Slides). Use Unicode Math symbols (√, ², ×, etc.) for all math. Do NOT use LaTeX.`;
-  // 3. تصحيح اسم الموديل هنا
-  const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash-latest', // تم التعديل من gemini-3-flash-preview
-    contents: { parts: [{ text: prompt + JSON.stringify(analysis) }] },
-    config: {
+  
+  const responseText = await callGemini("gemini-1.5-flash-latest", {
+    contents: [{ parts: [{ text: prompt + JSON.stringify(analysis) }] }],
+    generationConfig: {
       responseMimeType: "application/json",
       responseSchema: slideDeckSchema,
     },
   });
-  const responseText = response.text();
-  return response.text ? JSON.parse(response.text).slides : [];
+
+  return JSON.parse(responseText).slides;
 };
 
-export const chatWithContext = async (history: any[], newMessage: string) => {
-  const chat = ai.chats.create({
-    model: 'gemini-1.5-pro', // تم التعديل من gemini-3-pro-preview (نستخدم pro للشات عشان يكون أذكى)
-    history: history,
-    config: {
-       systemInstruction: `You are "El7ag" (الحاج), an expert academic tutor.
+export const chatWithContext = async (history: any[], newMessage: string): Promise<string> => {
+  const systemInstruction = `You are "El7ag" (الحاج), an expert academic tutor.
        
        **CRITICAL MATH FORMATTING RULES:**
        Format **any mathematical expression** into readable mathematical symbols using Unicode/Math symbols for direct display.
@@ -175,17 +193,25 @@ export const chatWithContext = async (history: any[], newMessage: string) => {
        4. Multiplication → ×
        5. NO LaTeX syntax (no $, no \\frac, etc.).
        
-       **Persona:** Speak in professional Arabic with a friendly Egyptian spirit.
-       `
-   }
+       **Persona:** Speak in professional Arabic with a friendly Egyptian spirit.`;
+
+  const contents = [
+    ...history.map((msg: any) => ({
+      role: msg.role === "model" ? "model" : "user",
+      parts: [{ text: msg.content || msg.parts?.[0]?.text || "" }]
+    })),
+    {
+      role: "user",
+      parts: [{ text: newMessage }]
+    }
+  ];
+
+  const responseText = await callGemini("gemini-1.5-flash-latest", {
+    contents,
+    systemInstruction: {
+      parts: [{ text: systemInstruction }]
+    }
   });
 
-  const result = await chat.sendMessage({ 
-    content: [ // ✅ تعديل: sendMessage بياخد content array أحياناً في النسخة الجديدة، أو string
-       { role: 'user', parts: [{ text: newMessage }] } 
-    ] 
-  });
-  
-  // ✅ تعديل: استخدام .text()
-  return result.text();
+  return responseText;
 };
