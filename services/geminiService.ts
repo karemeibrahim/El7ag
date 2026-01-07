@@ -1,6 +1,8 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { AnalysisResponse, Slide } from "../types";
 import { ProcessedFilePart } from "../utils/fileHelpers";
+console.log("My Key is:", import.meta.env.VITE_GEMINI_API_KEY); // لو بتستخدم Vite
+
 
 // 1. استخدام import.meta.env المتوافق مع Vite
 // تأكد أنك سميت المتغير في Netlify/Vercel بـ VITE_API_KEY
