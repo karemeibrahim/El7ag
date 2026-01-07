@@ -1,7 +1,7 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { AnalysisResponse, Slide } from "../types";
 import { ProcessedFilePart } from "../utils/fileHelpers";
-console.log("My Key is:", import.meta.env.VITE_GEMINI_API_KEY); // لو بتستخدم Vite
+
 
 
 // 1. استخدام import.meta.env المتوافق مع Vite
@@ -121,15 +121,19 @@ export const analyzeContent = async (
 
   // 2. تصحيح اسم الموديل هنا
   const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash', // تم التعديل من gemini-3-pro-preview
-    contents: { parts },
+    model: 'gemini-1.5-flash',
+    contents: [ // ✅ تعديل مهم: لازم تكون مصفوفة
+      {
+        role: 'user',
+        parts: parts
+      }
+    ],
     config: {
       responseMimeType: "application/json",
       responseSchema: analysisSchema,
-      // thinkingConfig: { thinkingBudget: 32768 }, // تم التعليق لأن gemini-1.5 قد لا يدعم thinkingConfig بنفس الطريقة حالياً
     },
   });
-
+const responseText = response.text();
   if (response.text) {
     const data = JSON.parse(response.text);
     data.questions = data.questions.map((q: any, index: number) => ({
@@ -152,6 +156,7 @@ export const generateSlideDeck = async (analysis: AnalysisResponse, language: 'a
       responseSchema: slideDeckSchema,
     },
   });
+  const responseText = response.text();
   return response.text ? JSON.parse(response.text).slides : [];
 };
 
@@ -172,8 +177,15 @@ export const chatWithContext = async (history: any[], newMessage: string) => {
        
        **Persona:** Speak in professional Arabic with a friendly Egyptian spirit.
        `
-    }
+   }
   });
-  const result = await chat.sendMessage({ message: newMessage });
-  return result.text;
+
+  const result = await chat.sendMessage({ 
+    content: [ // ✅ تعديل: sendMessage بياخد content array أحياناً في النسخة الجديدة، أو string
+       { role: 'user', parts: [{ text: newMessage }] } 
+    ] 
+  });
+  
+  // ✅ تعديل: استخدام .text()
+  return result.text();
 };
