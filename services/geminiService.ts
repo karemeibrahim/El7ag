@@ -121,7 +121,7 @@ export const analyzeContent = async (
 
   // 2. تصحيح اسم الموديل هنا
   const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.5-flash',
     contents: [ // ✅ تعديل مهم: لازم تكون مصفوفة
       {
         role: 'user',
