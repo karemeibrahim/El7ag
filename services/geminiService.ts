@@ -4,10 +4,10 @@ import { ProcessedFilePart } from "../utils/fileHelpers";
 const API_KEY = import.meta.env.VITE_API_KEY;
 const BASE_URL = "https://generativelanguage.googleapis.com/v1";
 
-// --- Call Gemini REST API ---
+// --- Call Gemini API ---
 async function callGemini(
   model: string,
-  contents: Array<{ role?: string; parts: Array<{ text?: string; inlineData?: any }> }>
+  contents: Array<{ role?: string; parts: Array<{ text: string }> }>
 ): Promise<string> {
   const url = `${BASE_URL}/models/${model}:generateContent?key=${API_KEY}`;
 
@@ -54,8 +54,8 @@ const localizedContentSchema = {
 const analysisSchema = {
   type: "object",
   properties: {
-    overallSummaryAr: { type: "string", description: "ملخص عام بأسلوب أكاديمي راقٍ بالعامية المصرية." },
-    overallSummaryEn: { type: "string", description: "Professional English summary." },
+    overallSummaryAr: { type: "string" },
+    overallSummaryEn: { type: "string" },
     questions: {
       type: "array",
       items: {
@@ -93,29 +93,29 @@ const slideDeckSchema = {
   required: ["slides"]
 };
 
+// --- Helper: sanitize parts to avoid 400 ---
+function sanitizeParts(parts: Array<{ text?: string; inlineData?: any }>) {
+  return parts
+    .filter(p => p.text && p.text.trim().length > 0)
+    .map(p => ({ text: p.text!.trim() }));
+}
+
 // --- Analyze Content ---
 export const analyzeContent = async (
   textInput: string,
   fileParts: ProcessedFilePart[] = []
 ): Promise<AnalysisResponse> => {
-  const parts: Array<{ text?: string; inlineData?: any }> = [];
+  const parts: Array<{ text?: string }> = [];
+
   fileParts.forEach(part => {
-    if (part.inlineData) parts.push({ inlineData: part.inlineData });
-    else if (part.text) parts.push({ text: part.text });
+    if (part.text) parts.push({ text: part.text });
   });
 
-  const prompt = `
-You are "El7ag" (الحاج), an expert academic tutor.
-Analyze the content and return a JSON according to the schema.
-Format math expressions using Unicode symbols (√, ², ×, etc.).
-User input: ${textInput}
-  `;
-
-  parts.push({ text: prompt });
+  parts.push({ text: textInput });
 
   const contents = [
-    { role: "system", parts: [{ text: "You are El7ag, a friendly Egyptian academic tutor. Follow math formatting rules." }] },
-    { role: "user", parts }
+    { role: "system", parts: [{ text: "You are El7ag, a friendly Egyptian academic tutor. Format math using Unicode symbols." }] },
+    { role: "user", parts: sanitizeParts(parts) }
   ];
 
   const responseText = await callGemini("gemini-1.5-flash-latest", contents);
