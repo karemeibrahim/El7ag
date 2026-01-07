@@ -121,7 +121,7 @@ export const analyzeContent = async (
 
   // 2. تصحيح اسم الموديل هنا
   const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
+    model: model: 'gemini-1.5-flash-latest',
     contents: [ // ✅ تعديل مهم: لازم تكون مصفوفة
       {
         role: 'user',
@@ -130,7 +130,7 @@ export const analyzeContent = async (
     ],
     config: {
       responseMimeType: "application/json",
-      responseSchema: analysisSchema,
+     
     },
   });
 const responseText = response.text();
@@ -149,7 +149,7 @@ export const generateSlideDeck = async (analysis: AnalysisResponse, language: 'a
   const prompt = `Convert this analysis into a presentation (Slides). Use Unicode Math symbols (√, ², ×, etc.) for all math. Do NOT use LaTeX.`;
   // 3. تصحيح اسم الموديل هنا
   const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash', // تم التعديل من gemini-3-flash-preview
+    model: 'gemini-1.5-flash-latest', // تم التعديل من gemini-3-flash-preview
     contents: { parts: [{ text: prompt + JSON.stringify(analysis) }] },
     config: {
       responseMimeType: "application/json",
